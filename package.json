@@ -1,0 +1,56 @@
+{
+  "name": "slsa-on-blockchain",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@mysten/dapp-kit": "^0.14.11",
+    "@mysten/sui": "^1.2.1",
+    "@tanstack/react-query": "^5.51.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "lint": "eslint src/** --fix",
+    "format": "prettier --write --ignore-path .gitignore .",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy:functions": "cd functions && npm run deploy"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.101",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-no-null": "^1.0.2",
+    "prettier": "^3.3.2",
+    "typescript": "^4.9.5"
+  }
+}
