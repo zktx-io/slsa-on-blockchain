@@ -118,7 +118,7 @@ const load = async (
     }
 
     const { chain, network, signatures } = doc.data() as DocData;
-    collection ==='signed' && await docRef.delete();
+    collection === 'signed' && (await docRef.delete());
 
     res.status(200).json({ chain, network, signatures });
   } catch (error) {
