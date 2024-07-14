@@ -23,8 +23,10 @@ module.exports = {
   ],
   plugins: ['@typescript-eslint', 'import'],
   rules: {
+    // prettier-ignore
     'quotes': ['error', 'single'],
     'import/no-unresolved': 0,
+    // prettier-ignore
     'indent': ['error', 2],
     'object-curly-spacing': ['error', 'always'],
   },
