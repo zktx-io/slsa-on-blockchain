@@ -13,24 +13,11 @@ import { pubsub } from 'firebase-functions/v1';
 import { onRequest } from 'firebase-functions/v2/https';
 import { v4 as uuidv4 } from 'uuid';
 import * as serviceAccount from './serviceAccountKey.json';
+import { DocData } from './types';
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
 });
-
-interface DocData {
-  chain: string;
-  network: string;
-  project: string;
-  provenance: {
-    name: string; // packageName
-    summary: string; // build summary
-    commit: string; // source commit
-    build: string; // build file
-    ledger: string; // public ledger
-  };
-  signatures?: string[];
-}
 
 export const create = onRequest(async (req, res) => {
   if (req.method !== 'POST') {
@@ -123,10 +110,14 @@ const _load = async (
       return;
     }
 
-    const { chain, network, signatures } = doc.data() as DocData;
-    collection === 'signed' && (await docRef.delete());
-
-    res.status(200).json({ chain, network, signatures });
+    const { chain, network, project, provenance, signatures } =
+      doc.data() as DocData;
+    if (collection === 'signed') {
+      await docRef.delete();
+      res.status(200).json({ chain, network, signatures });
+    } else {
+      res.status(200).json({ chain, network, project, provenance });
+    }
   } catch (error) {
     console.error(`Error reading and deleting data from ${collection}:`, error);
     res.status(500).send('Internal Server Error');
