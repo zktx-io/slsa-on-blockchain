@@ -1,15 +1,18 @@
 import React from 'react';
 
+import { Theme } from '@radix-ui/themes';
 import { createRoot } from 'react-dom/client';
 
-import './index.css';
+import '@radix-ui/themes/styles.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <Theme appearance="dark">
+      <App />
+    </Theme>
   </React.StrictMode>,
 );
 

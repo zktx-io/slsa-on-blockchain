@@ -1,13 +1,12 @@
-import './App.css';
-import { Wallet } from './chains/sui';
+import { RecoilRoot } from 'recoil';
+
+import { Loading } from './component/Loading';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <Wallet />
-      </header>
-    </div>
+    <RecoilRoot>
+      <Loading />
+    </RecoilRoot>
   );
 }
 
