@@ -1,13 +1,12 @@
-import { RecoilRoot } from 'recoil';
+import { RecoilRoot, useRecoilState } from 'recoil';
 
 import { Loading } from './component/Loading';
+import { docDataState } from './recoil';
 
 function App() {
-  return (
-    <RecoilRoot>
-      <Loading />
-    </RecoilRoot>
-  );
+  const state = useRecoilState(docDataState);
+
+  return <RecoilRoot>{!state && <Loading />}</RecoilRoot>;
 }
 
 export default App;
