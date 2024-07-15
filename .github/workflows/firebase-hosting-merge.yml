@@ -18,6 +18,54 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SLSA_ON_BLOCKCHAIN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_HOSTING }}
           channelId: live
           projectId: slsa-on-blockchain
+
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: slsa-on-blockchain
+          credentials_json: ${{ secrets.FIREBASE_FUNCTIONS }}
+
+      - run: |
+          echo "${{ secrets.FIREBASE_APP_BASE64 }}" | base64 --decode > ./functions/src/serviceAccountKey.json
+
+      - name: Deploy create function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: create
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: create
+
+      - name: Deploy update function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: update
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: update
+
+      - name: Deploy loadUnsigned function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: loadUnsigned
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: loadUnsigned
+
+      - name: Deploy loadSigned function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: loadSigned
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: loadSigned
+
+      - name: Deploy deleteOldData function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: deleteOldData
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: deleteOldData
