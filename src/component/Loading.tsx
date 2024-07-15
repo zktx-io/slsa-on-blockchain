@@ -50,19 +50,17 @@ export const Loading = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <>
-      <Flex
-        gap="3"
-        direction="column"
-        align="center"
-        justify="center"
-        height="100vh"
-      >
-        <Box>{!error && <Spinner size="3" />}</Box>
-        <Box>
-          <Text>{state}</Text>
-        </Box>
-      </Flex>
-    </>
+    <Flex
+      gap="3"
+      direction="column"
+      align="center"
+      justify="center"
+      height="100vh"
+    >
+      <Box>{!error && <Spinner size="3" />}</Box>
+      <Box>
+        <Text>{state}</Text>
+      </Box>
+    </Flex>
   );
 };

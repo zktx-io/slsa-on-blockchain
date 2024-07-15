@@ -4,7 +4,9 @@ import { Theme } from '@radix-ui/themes';
 import { createRoot } from 'react-dom/client';
 import { RecoilRoot } from 'recoil';
 
+import '@mysten/dapp-kit/dist/index.css';
 import '@radix-ui/themes/styles.css';
+
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

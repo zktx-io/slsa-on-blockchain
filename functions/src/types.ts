@@ -2,14 +2,14 @@ interface Provenance {
   name: string; // packageName
   summary: string; // build summary
   commit: string; // source commit
-  build: string; // build file
+  workflow: string; // build workflow
   ledger: string; // public ledger
 }
 
 export interface DocData {
-  chain: string;
+  chain: 'aptos' | 'sui';
   network: string;
   project: string;
   provenance: Provenance;
-  signatures?: string[];
+  serializedSignedTx?: string;
 }

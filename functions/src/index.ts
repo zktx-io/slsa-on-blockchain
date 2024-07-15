@@ -61,10 +61,12 @@ export const update = onRequest({ cors: true }, async (req, res) => {
     return;
   }
 
-  const { uid, signatures } = req.body;
+  const { uid, serializedSignedTx } = req.body;
 
-  if (!uid || !signatures) {
-    res.status(400).send('Invalid input, missing "uid" or "signatures"');
+  if (!uid || !serializedSignedTx) {
+    res
+      .status(400)
+      .send('Invalid input, missing "uid" or "serializedSignedTx"');
     return;
   }
 
@@ -82,7 +84,7 @@ export const update = onRequest({ cors: true }, async (req, res) => {
     const newDocRef = firestore.collection('signed').doc(uid);
     await newDocRef.set({
       ...data,
-      signatures,
+      serializedSignedTx,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -110,11 +112,11 @@ const _load = async (
       return;
     }
 
-    const { chain, network, project, provenance, signatures } =
+    const { chain, network, project, provenance, serializedSignedTx } =
       doc.data() as DocData;
     if (collection === 'signed') {
       await docRef.delete();
-      res.status(200).json({ chain, network, signatures });
+      res.status(200).json({ chain, network, serializedSignedTx });
     } else {
       res.status(200).json({ chain, network, project, provenance });
     }
