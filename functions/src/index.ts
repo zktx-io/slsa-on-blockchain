@@ -108,7 +108,7 @@ export const update = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
-const load = async (
+const _load = async (
   collection: 'signed' | 'unsigned',
   uid: string,
   res: functions.Response,
@@ -133,22 +133,22 @@ const load = async (
   }
 };
 
-export const loadUnsigned = onRequest({ cors: true }, async (req, res) => {
+export const read = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
   const { uid } = req.body;
-  await load('unsigned', uid, res);
+  await _load('unsigned', uid, res);
 });
 
-export const loadSigned = onRequest(async (req, res) => {
+export const fetch = onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
   const { uid } = req.body;
-  await load('signed', uid, res);
+  await _load('signed', uid, res);
 });
 
 const deleteOldDataFromCollection = async (

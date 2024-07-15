@@ -15,7 +15,7 @@ export const Loading = () => {
         const { q: uid } = queryString.parse(window.location.search) as {
           q: string;
         };
-        fetch('https://loadunsigned-jx4b2hndxq-uc.a.run.app', {
+        fetch('https://read-jx4b2hndxq-uc.a.run.app', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
