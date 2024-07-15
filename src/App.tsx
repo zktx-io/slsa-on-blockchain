@@ -1,4 +1,4 @@
-import { RecoilRoot, useRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 
 import { Loading } from './component/Loading';
 import { docDataState } from './recoil';
@@ -6,7 +6,7 @@ import { docDataState } from './recoil';
 function App() {
   const state = useRecoilState(docDataState);
 
-  return <RecoilRoot>{!state && <Loading />}</RecoilRoot>;
+  return <>{!state && <Loading />}</>;
 }
 
 export default App;

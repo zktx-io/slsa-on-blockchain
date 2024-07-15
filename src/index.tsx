@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Theme } from '@radix-ui/themes';
 import { createRoot } from 'react-dom/client';
+import { RecoilRoot } from 'recoil';
 
 import '@radix-ui/themes/styles.css';
 import App from './App';
@@ -10,9 +11,11 @@ import reportWebVitals from './reportWebVitals';
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <React.StrictMode>
-    <Theme appearance="dark">
-      <App />
-    </Theme>
+    <RecoilRoot>
+      <Theme appearance="dark">
+        <App />
+      </Theme>
+    </RecoilRoot>
   </React.StrictMode>,
 );
 
