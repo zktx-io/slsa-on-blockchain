@@ -2,9 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Box, Flex, Spinner, Text } from '@radix-ui/themes';
 import queryString from 'query-string';
+import { useSetRecoilState } from 'recoil';
+
+import { docDataState } from '../recoil';
 
 export const Loading = () => {
   const initialized = useRef<boolean>(false);
+  const setDocDataState = useSetRecoilState(docDataState);
+
   const [state, setState] = useState<string>('Loading....');
   const [error, setError] = useState<boolean>(false);
 
@@ -26,7 +31,7 @@ export const Loading = () => {
             res
               .json()
               .then((data) => {
-                console.log(data);
+                setDocDataState(data);
               })
               .catch((e) => {
                 setError(true);
@@ -42,6 +47,7 @@ export const Loading = () => {
         setState('Query params error');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <>
