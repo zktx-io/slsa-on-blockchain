@@ -46,21 +46,21 @@ jobs:
           source_dir: ./functions
           entry_point: update
 
-      - name: Deploy loadUnsigned function
+      - name: Deploy read function
         uses: google-github-actions/deploy-cloud-functions@v3
         with:
-          name: loadUnsigned
+          name: read
           runtime: nodejs20
           source_dir: ./functions
-          entry_point: loadUnsigned
+          entry_point: read
 
-      - name: Deploy loadSigned function
+      - name: Deploy fetch function
         uses: google-github-actions/deploy-cloud-functions@v3
         with:
-          name: loadSigned
+          name: fetch
           runtime: nodejs20
           source_dir: ./functions
-          entry_point: loadSigned
+          entry_point: fetch
 
       - name: Deploy deleteOldData function
         uses: google-github-actions/deploy-cloud-functions@v3
