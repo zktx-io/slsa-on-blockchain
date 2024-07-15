@@ -68,7 +68,7 @@ export const create = onRequest(async (req, res) => {
   }
 });
 
-export const update = onRequest(async (req, res) => {
+export const update = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
@@ -133,7 +133,7 @@ const load = async (
   }
 };
 
-export const loadUnsigned = onRequest(async (req, res) => {
+export const loadUnsigned = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
