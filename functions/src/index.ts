@@ -22,7 +22,13 @@ interface DocData {
   chain: string;
   network: string;
   project: string;
-  provenance: string;
+  provenance: {
+    name: string; // packageName
+    summary: string; // build summary
+    commit: string; // source commit
+    build: string; // build file
+    ledger: string; // public ledger
+  };
   signatures?: string[];
 }
 
