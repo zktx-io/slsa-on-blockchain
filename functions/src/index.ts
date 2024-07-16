@@ -30,7 +30,9 @@ export const create = onRequest(async (req, res) => {
   if (!network || !project || !provenance) {
     res
       .status(400)
-      .send('Invalid input, missing "name", "network", "project" or "provenance"');
+      .send(
+        'Invalid input, missing "name", "network", "project" or "provenance"',
+      );
     return;
   }
 
