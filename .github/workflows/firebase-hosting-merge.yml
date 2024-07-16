@@ -45,7 +45,7 @@ jobs:
           runtime: nodejs20
           source_dir: ./functions
           entry_point: download
-  
+
       - name: Deploy create function
         uses: google-github-actions/deploy-cloud-functions@v3
         with:
