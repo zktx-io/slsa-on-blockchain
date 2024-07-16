@@ -30,6 +30,22 @@ jobs:
       - run: |
           echo "${{ secrets.FIREBASE_APP_BASE64 }}" | base64 --decode > ./functions/src/serviceAccountKey.json
 
+      - name: Deploy upload function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: upload
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: upload
+
+      - name: Deploy download function
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: download
+          runtime: nodejs20
+          source_dir: ./functions
+          entry_point: download
+  
       - name: Deploy create function
         uses: google-github-actions/deploy-cloud-functions@v3
         with:
