@@ -37,15 +37,27 @@ export const upload = onRequest(async (req, res) => {
   const busboy = Busboy({ headers: req.headers });
   const tmpdir = os.tmpdir();
   const uploads: any = {};
+  let uploadError = false;
 
   busboy.on('file', (fieldname, file, { filename }) => {
     const filepath = path.join(tmpdir, filename);
     uploads[fieldname] = filepath;
-    file.pipe(fs.createWriteStream(filepath));
+    const writeStream = fs.createWriteStream(filepath);
+    file.pipe(writeStream);
+
+    writeStream.on('error', (err) => {
+      console.error('Error writing file:', err);
+      res.status(500).send('Error writing file');
+      uploadError = true;
+    });
   });
 
   busboy.on('finish', async () => {
-    const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
+    if (uploadError) {
+      return;
+    }
+
+    const bucket = storage.bucket('your-bucket-name');
     const uploadPromises = [];
 
     for (const name in uploads) {
@@ -68,7 +80,12 @@ export const upload = onRequest(async (req, res) => {
     }
   });
 
-  busboy.end(req.rawBody);
+  busboy.on('error', (err) => {
+    console.error('Error parsing form:', err);
+    res.status(500).send('Error parsing form');
+  });
+
+  req.pipe(busboy);
 });
 
 /**
