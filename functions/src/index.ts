@@ -25,12 +25,12 @@ export const create = onRequest(async (req, res) => {
     return;
   }
 
-  const { network, project, provenance } = req.body as DocData;
+  const { name, network, project, provenance } = req.body as DocData;
 
   if (!network || !project || !provenance) {
     res
       .status(400)
-      .send('Invalid input, missing "network", "project" or "provenance"');
+      .send('Invalid input, missing "name", "network", "project" or "provenance"');
     return;
   }
 
@@ -39,6 +39,7 @@ export const create = onRequest(async (req, res) => {
     const firestore = admin.firestore();
     const docRef = firestore.collection('unsigned').doc(uid);
     await docRef.set({
+      name,
       network,
       project,
       provenance,
@@ -109,13 +110,13 @@ const _load = async (
       return;
     }
 
-    const { network, project, provenance, serializedSignedTx } =
+    const { name, network, project, provenance, serializedSignedTx } =
       doc.data() as DocData;
     if (collection === 'signed') {
       await docRef.delete();
-      res.status(200).json({ network, serializedSignedTx });
+      res.status(200).json({ name, network, serializedSignedTx });
     } else {
-      res.status(200).json({ network, project, provenance });
+      res.status(200).json({ name, network, project, provenance });
     }
   } catch (error) {
     console.error(`Error reading and deleting data from ${collection}:`, error);
