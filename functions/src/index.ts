@@ -12,6 +12,10 @@ import * as functions from 'firebase-functions';
 import { pubsub } from 'firebase-functions/v1';
 import { onRequest } from 'firebase-functions/v2/https';
 import { v4 as uuidv4 } from 'uuid';
+import * as Busboy from 'busboy';
+import * as path from 'path';
+import * as os from 'os';
+import * as fs from 'fs';
 import * as serviceAccount from './serviceAccountKey.json';
 import { DocData } from './types';
 
@@ -24,24 +28,47 @@ admin.initializeApp({
  * Expects the request body to contain 'filename', 'contentType', and 'file' (base64 encoded).
  */
 export const upload = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
   const storage = admin.storage();
-  const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
-  const file = bucket.file(req.body.filename);
-  const stream = file.createWriteStream({
-    metadata: {
-      contentType: req.body.contentType,
-    },
+  const busboy = Busboy({ headers: req.headers });
+  const tmpdir = os.tmpdir();
+  const uploads: any = {};
+
+  busboy.on('file', (fieldname, file, { filename }) => {
+    const filepath = path.join(tmpdir, filename);
+    uploads[fieldname] = filepath;
+    file.pipe(fs.createWriteStream(filepath));
   });
 
-  stream.on('error', (err: Error) => {
-    res.status(500).send(err);
+  busboy.on('finish', async () => {
+    const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
+    const uploadPromises = [];
+
+    for (const name in uploads) {
+      const file = uploads[name];
+      uploadPromises.push(
+        bucket.upload(file, { destination: path.basename(file) }),
+      );
+    }
+
+    try {
+      await Promise.all(uploadPromises);
+      res.status(200).send('File uploaded successfully.');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).send('Internal Server Error');
+    } finally {
+      for (const file in uploads) {
+        fs.unlinkSync(uploads[file]);
+      }
+    }
   });
 
-  stream.on('finish', () => {
-    res.status(200).send('File uploaded.');
-  });
-
-  stream.end(Buffer.from(req.body.file, 'base64'));
+  busboy.end(req.rawBody);
 });
 
 /**
@@ -50,17 +77,27 @@ export const upload = onRequest(async (req, res) => {
  * Returns the file contents as a base64 encoded string.
  */
 export const download = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
   const storage = admin.storage();
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
   const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
   const file = bucket.file(req.body.filename);
 
-  file.download((err: Error | null, contents: Buffer) => {
-    if (err) {
-      res.status(500).send(err);
-      return;
-    }
+  try {
+    const [contents] = await file.download();
     res.status(200).send(contents.toString('base64'));
-  });
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 /**
