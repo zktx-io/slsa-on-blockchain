@@ -46,7 +46,7 @@ export const upload = onRequest(async (req, res) => {
     file.pipe(writeStream);
 
     writeStream.on('error', (err) => {
-      console.error('Error writing file:', err);
+      functions.logger.error('Error writing file:', err);
       res.status(500).send('Error writing file');
       uploadError = true;
     });
@@ -71,7 +71,7 @@ export const upload = onRequest(async (req, res) => {
       await Promise.all(uploadPromises);
       res.status(200).send('File uploaded successfully.');
     } catch (error) {
-      console.error('Error uploading file:', error);
+      functions.logger.error('Error uploading file:', error);
       res.status(500).send('Internal Server Error');
     } finally {
       for (const file in uploads) {
@@ -81,7 +81,7 @@ export const upload = onRequest(async (req, res) => {
   });
 
   busboy.on('error', (err) => {
-    console.error('Error parsing form:', err);
+    functions.logger.error('Error parsing form:', err);
     res.status(500).send('Error parsing form');
   });
 
@@ -112,7 +112,7 @@ export const download = onRequest(async (req, res) => {
     const [contents] = await file.download();
     res.status(200).send(contents.toString('base64'));
   } catch (error) {
-    console.error('Error downloading file:', error);
+    functions.logger.error('Error downloading file:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -151,7 +151,7 @@ export const create = onRequest(async (req, res) => {
 
     res.status(200).json({ uid });
   } catch (error) {
-    console.error('Error saving data:', error);
+    functions.logger.error('Error saving data:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -196,7 +196,7 @@ export const update = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ uid });
   } catch (error) {
-    console.error('Error updating and moving data:', error);
+    functions.logger.error('Error updating and moving data:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -228,7 +228,7 @@ const _load = async (
       res.status(200).json({ name, network, project, provenance });
     }
   } catch (error) {
-    console.error(`Error reading and deleting data from ${collection}:`, error);
+    functions.logger.error(`Error reading and deleting data from ${collection}:`, error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -288,8 +288,8 @@ export const deleteOldData = pubsub
     try {
       await deleteOldDataFromCollection('unsigned', cutoff);
       await deleteOldDataFromCollection('signed', cutoff);
-      console.log('Old data deleted from both collections');
+      functions.logger.log('Old data deleted from both collections');
     } catch (error) {
-      console.error('Error deleting old data:', error);
+      functions.logger.error('Error deleting old data:', error);
     }
   });
