@@ -57,7 +57,7 @@ export const upload = onRequest(async (req, res) => {
       return;
     }
 
-    const bucket = storage.bucket('your-bucket-name');
+    const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
     const uploadPromises = [];
 
     for (const name in uploads) {
