@@ -18,13 +18,13 @@ import { DocData } from './types';
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
 });
-const storage = new Storage();
 
 /**
  * Uploads a file to Firebase Cloud Storage.
  * Expects the request body to contain 'filename', 'contentType', and 'file' (base64 encoded).
  */
 export const upload = onRequest(async (req, res) => {
+  const storage = admin.storage();
   const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
   const file = bucket.file(req.body.filename);
   const stream = file.createWriteStream({
@@ -50,6 +50,7 @@ export const upload = onRequest(async (req, res) => {
  * Returns the file contents as a base64 encoded string.
  */
 export const download = onRequest(async (req, res) => {
+  const storage = admin.storage();
   const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
   const file = bucket.file(req.body.filename);
 
