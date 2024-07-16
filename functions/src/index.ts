@@ -18,7 +18,53 @@ import { DocData } from './types';
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
 });
+const storage = new Storage();
 
+/**
+ * Uploads a file to Firebase Cloud Storage.
+ * Expects the request body to contain 'filename', 'contentType', and 'file' (base64 encoded).
+ */
+export const upload = onRequest(async (req, res) => {
+  const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
+  const file = bucket.file(req.body.filename);
+  const stream = file.createWriteStream({
+    metadata: {
+      contentType: req.body.contentType,
+    },
+  });
+
+  stream.on('error', (err: Error) => {
+    res.status(500).send(err);
+  });
+
+  stream.on('finish', () => {
+    res.status(200).send('File uploaded.');
+  });
+
+  stream.end(Buffer.from(req.body.file, 'base64'));
+});
+
+/**
+ * Downloads a file from Firebase Cloud Storage.
+ * Expects the request body to contain 'filename'.
+ * Returns the file contents as a base64 encoded string.
+ */
+export const download = onRequest(async (req, res) => {
+  const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
+  const file = bucket.file(req.body.filename);
+
+  file.download((err: Error | null, contents: Buffer) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+    res.status(200).send(contents.toString('base64'));
+  });
+});
+
+/**
+ * Creates a new document in the 'unsigned' collection.
+ */
 export const create = onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -55,6 +101,9 @@ export const create = onRequest(async (req, res) => {
   }
 });
 
+/**
+ * Updates a document by moving it from 'unsigned' to 'signed' collection.
+ */
 export const update = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -97,6 +146,9 @@ export const update = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
+/**
+ * Helper function to load and optionally delete a document from a specified collection.
+ */
 const _load = async (
   collection: 'signed' | 'unsigned',
   uid: string,
@@ -126,6 +178,9 @@ const _load = async (
   }
 };
 
+/**
+ * Reads a document from the 'unsigned' collection.
+ */
 export const read = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -135,6 +190,9 @@ export const read = onRequest({ cors: true }, async (req, res) => {
   await _load('unsigned', uid, res);
 });
 
+/**
+ * Fetches a document from the 'signed' collection.
+ */
 export const fetch = onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -144,6 +202,9 @@ export const fetch = onRequest(async (req, res) => {
   await _load('signed', uid, res);
 });
 
+/**
+ * Deletes old documents from a specified collection.
+ */
 const deleteOldDataFromCollection = async (
   collectionName: string,
   cutoff: Date,
@@ -160,6 +221,9 @@ const deleteOldDataFromCollection = async (
   await batch.commit();
 };
 
+/**
+ * Deletes old documents from the 'unsigned' and 'signed' collections every 24 hours.
+ */
 export const deleteOldData = pubsub
   .schedule('every 24 hours')
   .onRun(async () => {
