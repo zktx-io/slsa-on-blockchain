@@ -1,5 +1,4 @@
 interface Provenance {
-  name: string; // packageName
   summary: string; // build summary
   commit: string; // source commit
   workflow: string; // build workflow
@@ -7,9 +6,9 @@ interface Provenance {
 }
 
 export interface DocData {
-  chain: 'aptos' | 'sui';
   network: string;
   project: string;
+  name: string; // packageName
   provenance: Provenance;
   serializedSignedTx?: string;
 }

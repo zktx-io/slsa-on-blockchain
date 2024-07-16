@@ -15,7 +15,7 @@ function App() {
   return (
     <>
       {!state && <Loading />}
-      {!!state && state.chain === 'sui' && (
+      {!!state && state.network.split(':')[0] === 'sui' && (
         <QueryClientProvider client={queryClient}>
           <SuiClientProvider
             defaultNetwork="mainnet"
