@@ -197,6 +197,10 @@ const _load = async (
     const { name, network, provenance, serializedSignedTx } =
       doc.data() as DocData;
     if (collection === 'signed') {
+      const storage = admin.storage();
+      const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
+      const file = bucket.file(uid);
+      await file.delete();
       await docRef.delete();
       res.status(200).json({ name, network, serializedSignedTx });
     } else {
@@ -255,6 +259,38 @@ const deleteOldDataFromCollection = async (
 };
 
 /**
+ * Deletes old files from the specified bucket, sorted by date.
+ */
+const deleteOldFilesFromBucket = async (bucketName: string, cutoff: Date) => {
+  const storage = admin.storage();
+  const bucket = storage.bucket(bucketName);
+  const [files] = await bucket.getFiles();
+
+  // Filter files older than the cutoff date and sort by date
+  const deletePromises = files
+    .filter(
+      (file) =>
+        !file.metadata.timeCreated ||
+        new Date(file.metadata.timeCreated) < cutoff,
+    )
+    .map((file) => {
+      return file
+        .delete()
+        .then(() =>
+          functions.logger.log(`File ${file.name} deleted successfully.`),
+        )
+        .catch((error) => {
+          if (error.code === 404) {
+            functions.logger.warn(`File ${file.name} not found.`);
+          } else {
+            functions.logger.error(`Error deleting file ${file.name}:`, error);
+          }
+        });
+    });
+  await Promise.all(deletePromises);
+};
+
+/**
  * Deletes old documents from the 'unsigned' and 'signed' collections every 24 hours.
  */
 export const deleteOldData = pubsub
@@ -266,6 +302,7 @@ export const deleteOldData = pubsub
     try {
       await deleteOldDataFromCollection('unsigned', cutoff);
       await deleteOldDataFromCollection('signed', cutoff);
+      await deleteOldFilesFromBucket('slsa-on-blockchain.appspot.com', cutoff);
       functions.logger.log('Old data deleted from both collections');
     } catch (error) {
       functions.logger.error('Error deleting old data:', error);
