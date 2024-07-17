@@ -33,7 +33,6 @@ export const upload = onRequest(async (req, res) => {
     return;
   }
 
-  const storage = admin.storage();
   const busboy = Busboy({ headers: req.headers });
   const tmpdir = os.tmpdir();
   const uploads: any = {};
@@ -45,6 +44,7 @@ export const upload = onRequest(async (req, res) => {
   });
 
   busboy.on('finish', async () => {
+    const storage = admin.storage();
     const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
     const uploadPromises = [];
 
@@ -59,7 +59,7 @@ export const upload = onRequest(async (req, res) => {
       await Promise.all(uploadPromises);
       res.status(200).send('File uploaded successfully.');
     } catch (error) {
-      console.error('Error uploading file:', error);
+      functions.logger.error('Error uploading file:', error);
       res.status(500).send('Internal Server Error');
     } finally {
       for (const file in uploads) {
@@ -76,18 +76,13 @@ export const upload = onRequest(async (req, res) => {
  * Expects the request body to contain 'filename'.
  * Returns the file contents as a base64 encoded string.
  */
-export const download = onRequest(async (req, res) => {
+export const download = onRequest({ cors: true }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
 
   const storage = admin.storage();
-  if (req.method !== 'POST') {
-    res.status(405).send('Method Not Allowed');
-    return;
-  }
-
   const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
   const file = bucket.file(req.body.filename);
 
@@ -95,7 +90,7 @@ export const download = onRequest(async (req, res) => {
     const [contents] = await file.download();
     res.status(200).send(contents.toString('base64'));
   } catch (error) {
-    console.error('Error downloading file:', error);
+    functions.logger.error('Error downloading file:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -109,14 +104,12 @@ export const create = onRequest(async (req, res) => {
     return;
   }
 
-  const { name, network, project, provenance } = req.body as DocData;
+  const { name, network, provenance } = req.body as DocData;
 
-  if (!network || !project || !provenance) {
+  if (!name || !network || !provenance) {
     res
       .status(400)
-      .send(
-        'Invalid input, missing "name", "network", "project" or "provenance"',
-      );
+      .send('Invalid input, missing "name", "network" or "provenance"');
     return;
   }
 
@@ -127,14 +120,13 @@ export const create = onRequest(async (req, res) => {
     await docRef.set({
       name,
       network,
-      project,
       provenance,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     res.status(200).json({ uid });
   } catch (error) {
-    console.error('Error saving data:', error);
+    functions.logger.error('Error saving data:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -179,7 +171,7 @@ export const update = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ uid });
   } catch (error) {
-    console.error('Error updating and moving data:', error);
+    functions.logger.error('Error updating and moving data:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -202,16 +194,19 @@ const _load = async (
       return;
     }
 
-    const { name, network, project, provenance, serializedSignedTx } =
+    const { name, network, provenance, serializedSignedTx } =
       doc.data() as DocData;
     if (collection === 'signed') {
       await docRef.delete();
       res.status(200).json({ name, network, serializedSignedTx });
     } else {
-      res.status(200).json({ name, network, project, provenance });
+      res.status(200).json({ name, network, provenance });
     }
   } catch (error) {
-    console.error(`Error reading and deleting data from ${collection}:`, error);
+    functions.logger.error(
+      `Error reading and deleting data from ${collection}:`,
+      error,
+    );
     res.status(500).send('Internal Server Error');
   }
 };
@@ -271,8 +266,8 @@ export const deleteOldData = pubsub
     try {
       await deleteOldDataFromCollection('unsigned', cutoff);
       await deleteOldDataFromCollection('signed', cutoff);
-      console.log('Old data deleted from both collections');
+      functions.logger.log('Old data deleted from both collections');
     } catch (error) {
-      console.error('Error deleting old data:', error);
+      functions.logger.error('Error deleting old data:', error);
     }
   });

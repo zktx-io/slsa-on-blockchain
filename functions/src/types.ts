@@ -8,7 +8,6 @@ interface Provenance {
 export interface DocData {
   name: string; // packageName
   network: string;
-  project: string;
   provenance: Provenance;
   serializedSignedTx?: string;
 }
