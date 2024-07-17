@@ -1,11 +1,10 @@
 import { Avatar, Box, Button, Card, Flex, Link, Text } from '@radix-ui/themes';
 import { useRecoilState } from 'recoil';
 
-import { docDataState } from '../recoil';
+import { STATE } from '../recoil';
 
 export const Provenance = () => {
-  const [state] = useRecoilState(docDataState);
-  console.log(state);
+  const [state] = useRecoilState(STATE);
   return (
     <>
       {state && (
@@ -15,15 +14,15 @@ export const Provenance = () => {
               <Flex gap="3" align="center">
                 <Avatar
                   size="3"
-                  src={`/logo/${state.network.split(':')[0]}.svg`}
+                  src={`/logo/${state.data.network.split(':')[0]}.svg`}
                   fallback="T"
                 />
                 <Box>
                   <Text as="div" size="2" weight="bold">
-                    {state.network}
+                    {state.data.network}
                   </Text>
                   <Text as="div" size="2" color="gray">
-                    {state.name}
+                    {state.data.name}
                   </Text>
                 </Box>
               </Flex>
@@ -38,17 +37,25 @@ export const Provenance = () => {
                 <Flex direction="column" gap="1" maxWidth="420px">
                   <Flex direction="column">
                     <Text size="2">Build Summary</Text>
-                    <Link size="1" color="gray" href={state.provenance.summary}>
+                    <Link
+                      size="1"
+                      color="gray"
+                      href={state.data.provenance.summary}
+                    >
                       <Flex>
-                        <Text truncate>{state.provenance.summary}</Text>
+                        <Text truncate>{state.data.provenance.summary}</Text>
                       </Flex>
                     </Link>
                   </Flex>
                   <Flex direction="column">
                     <Text size="2">Source Commit</Text>
-                    <Link size="1" color="gray" href={state.provenance.commit}>
+                    <Link
+                      size="1"
+                      color="gray"
+                      href={state.data.provenance.commit}
+                    >
                       <Flex>
-                        <Text truncate>{state.provenance.commit}</Text>
+                        <Text truncate>{state.data.provenance.commit}</Text>
                       </Flex>
                     </Link>
                   </Flex>
@@ -57,18 +64,22 @@ export const Provenance = () => {
                     <Link
                       size="1"
                       color="gray"
-                      href={state.provenance.workflow}
+                      href={state.data.provenance.workflow}
                     >
                       <Flex>
-                        <Text truncate>{state.provenance.workflow}</Text>
+                        <Text truncate>{state.data.provenance.workflow}</Text>
                       </Flex>
                     </Link>
                   </Flex>
                   <Flex direction="column">
                     <Text size="2">Public Ledger</Text>
-                    <Link size="1" color="gray" href={state.provenance.ledger}>
+                    <Link
+                      size="1"
+                      color="gray"
+                      href={state.data.provenance.ledger}
+                    >
                       <Flex>
-                        <Text truncate>{state.provenance.ledger}</Text>
+                        <Text truncate>{state.data.provenance.ledger}</Text>
                       </Flex>
                     </Link>
                   </Flex>

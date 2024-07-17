@@ -1,19 +1,13 @@
-import { useEffect } from 'react';
-
 import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
 import { Flex } from '@radix-ui/themes';
 import { useRecoilState } from 'recoil';
 
-import { Provenance } from './Provenance';
-import { docDataState } from '../recoil';
+import { STATE } from '../../recoil';
+import { Provenance } from '../Provenance';
 
 export const Sui = () => {
   const currentAccount = useCurrentAccount();
-  const [state] = useRecoilState(docDataState);
-
-  useEffect(() => {
-    currentAccount && console.log(currentAccount.address);
-  }, [currentAccount]);
+  const [state] = useRecoilState(STATE);
 
   return (
     <Flex

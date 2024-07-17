@@ -1,17 +1,53 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { fromB64 } from '@mysten/sui/utils';
 import { Box, Flex, Spinner, Text } from '@radix-ui/themes';
+import { gunzipSync } from 'fflate';
 import queryString from 'query-string';
 import { useSetRecoilState } from 'recoil';
+import { extract as gzip } from 'tar-stream';
 
-import { docDataState } from '../recoil';
+import { STATE } from '../recoil';
 
 export const Loading = () => {
   const initialized = useRef<boolean>(false);
-  const setDocDataState = useSetRecoilState(docDataState);
+  const setState = useSetRecoilState(STATE);
 
-  const [state, setState] = useState<string>('Loading....');
+  const [message, setMessage] = useState<string>('Initializing ....');
   const [error, setError] = useState<boolean>(false);
+
+  const unzip = async (
+    base64string: string,
+  ): Promise<{ [fileName: string]: Uint8Array }> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const decompressedData = gunzipSync(fromB64(base64string));
+        const extract = gzip();
+        const files: { [fileName: string]: Uint8Array } = {};
+        extract.on('entry', (header, stream, next) => {
+          const chunks: Uint8Array[] = [];
+          stream.on('data', (chunk) => chunks.push(chunk));
+          stream.on('end', () => {
+            const fileData = new Uint8Array(
+              chunks.reduce(
+                (acc, chunk) => acc.concat(Array.from(chunk)),
+                [] as number[],
+              ),
+            );
+            files[header.name] = fileData;
+            next();
+          });
+          stream.resume();
+        });
+        extract.on('finish', () => {
+          resolve(files);
+        });
+        extract.end(decompressedData);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
 
   useEffect(() => {
     if (!initialized.current) {
@@ -27,24 +63,57 @@ export const Loading = () => {
           },
           body: JSON.stringify({ uid }),
         })
-          .then((res) => {
-            res
+          .then((res1) => {
+            res1
               .json()
               .then((data) => {
-                setDocDataState(data);
+                setMessage('Loading Data ....');
+                fetch('https://download-jx4b2hndxq-uc.a.run.app', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ filename: uid }),
+                })
+                  .then((res2) => {
+                    res2
+                      .text()
+                      .then((gzip) => {
+                        unzip(gzip)
+                          .then((files) => {
+                            setState({
+                              uid,
+                              files,
+                              data,
+                            });
+                          })
+                          .catch((e) => {
+                            setError(true);
+                            setMessage(`${e}`);
+                          });
+                      })
+                      .catch((e) => {
+                        setError(true);
+                        setMessage(`${e}`);
+                      });
+                  })
+                  .catch((e) => {
+                    setError(true);
+                    setMessage(`${e}`);
+                  });
               })
               .catch((e) => {
                 setError(true);
-                setState(`${e}`);
+                setMessage(`${e}`);
               });
           })
           .catch((e) => {
             setError(true);
-            setState(`${e}`);
+            setMessage(`${e}`);
           });
       } else {
         setError(true);
-        setState('Query params error');
+        setMessage('Query params error');
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +129,7 @@ export const Loading = () => {
     >
       <Box>{!error && <Spinner size="3" />}</Box>
       <Box>
-        <Text>{state}</Text>
+        <Text>{message}</Text>
       </Box>
     </Flex>
   );

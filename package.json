@@ -7,11 +7,13 @@
     "@mysten/sui": "^1.2.1",
     "@radix-ui/themes": "^3.1.1",
     "@tanstack/react-query": "^5.51.1",
+    "fflate": "^0.8.2",
     "query-string": "^9.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "recoil": "^0.7.7",
+    "tar-stream": "^3.1.7",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -57,6 +59,7 @@
     "@types/node": "^16.18.101",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/tar-stream": "^3.1.3",
     "eslint": "^8.57.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-import-resolver-typescript": "^3.6.1",
