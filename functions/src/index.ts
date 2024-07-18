@@ -142,7 +142,12 @@ export const update = onRequest({ cors: true }, async (req, res) => {
 
   const { uid, signedData } = req.body;
 
-  if (!uid || !signedData || !signedData.message || !signedData.signature) {
+  if (
+    !uid ||
+    !signedData ||
+    (typeof signedData !== 'string' &&
+      (!signedData.message || !signedData.signature))
+  ) {
     res.status(400).send('Invalid input, missing "uid" or "signedData"');
     return;
   }
