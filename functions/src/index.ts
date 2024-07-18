@@ -140,12 +140,10 @@ export const update = onRequest({ cors: true }, async (req, res) => {
     return;
   }
 
-  const { uid, serializedSignedTx } = req.body;
+  const { uid, signedData } = req.body;
 
-  if (!uid || !serializedSignedTx) {
-    res
-      .status(400)
-      .send('Invalid input, missing "uid" or "serializedSignedTx"');
+  if (!uid || !signedData || !signedData.message || !signedData.signature) {
+    res.status(400).send('Invalid input, missing "uid" or "signedData"');
     return;
   }
 
@@ -163,7 +161,7 @@ export const update = onRequest({ cors: true }, async (req, res) => {
     const newDocRef = firestore.collection('signed').doc(uid);
     await newDocRef.set({
       ...data,
-      serializedSignedTx,
+      signedData,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -194,15 +192,14 @@ const _load = async (
       return;
     }
 
-    const { name, network, provenance, serializedSignedTx } =
-      doc.data() as DocData;
+    const { name, network, provenance, signedData } = doc.data() as DocData;
     if (collection === 'signed') {
       const storage = admin.storage();
       const bucket = storage.bucket('slsa-on-blockchain.appspot.com');
       const file = bucket.file(uid);
       await file.delete();
       await docRef.delete();
-      res.status(200).json({ name, network, serializedSignedTx });
+      res.status(200).json({ name, network, signedData });
     } else {
       res.status(200).json({ name, network, provenance });
     }

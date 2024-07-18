@@ -13,7 +13,7 @@ export const Loading = () => {
   const initialized = useRef<boolean>(false);
   const setState = useSetRecoilState(STATE);
 
-  const [message, setMessage] = useState<string>('Initializing ....');
+  const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<boolean>(false);
 
   const unzip = async (
@@ -56,61 +56,43 @@ export const Loading = () => {
         const { q: uid } = queryString.parse(window.location.search) as {
           q: string;
         };
-        fetch('https://read-jx4b2hndxq-uc.a.run.app', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ uid }),
-        })
-          .then((res1) => {
-            res1
-              .json()
-              .then((data) => {
-                setMessage('Loading Data ....');
-                fetch('https://download-jx4b2hndxq-uc.a.run.app', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ filename: uid }),
-                })
-                  .then((res2) => {
-                    res2
-                      .text()
-                      .then((gzip) => {
-                        unzip(gzip)
-                          .then((files) => {
-                            setState({
-                              uid,
-                              files,
-                              data,
-                            });
-                          })
-                          .catch((e) => {
-                            setError(true);
-                            setMessage(`${e}`);
-                          });
-                      })
-                      .catch((e) => {
-                        setError(true);
-                        setMessage(`${e}`);
-                      });
-                  })
-                  .catch((e) => {
-                    setError(true);
-                    setMessage(`${e}`);
-                  });
-              })
-              .catch((e) => {
-                setError(true);
-                setMessage(`${e}`);
-              });
-          })
-          .catch((e) => {
+        const fetchData = async () => {
+          try {
+            setMessage('Initializing ....');
+            const res1 = await fetch('https://read-jx4b2hndxq-uc.a.run.app', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ uid }),
+            });
+            const data = await res1.json();
+
+            setMessage('Loading Data ....');
+            const res2 = await fetch(
+              'https://download-jx4b2hndxq-uc.a.run.app',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename: uid }),
+              },
+            );
+            const gzip = await res2.text();
+            const files = await unzip(gzip);
+            setState({
+              uid,
+              files,
+              data,
+            });
+          } catch (e) {
             setError(true);
             setMessage(`${e}`);
-          });
+          }
+        };
+
+        fetchData();
       } else {
         setError(true);
         setMessage('Query params error');

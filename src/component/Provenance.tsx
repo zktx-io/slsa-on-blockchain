@@ -1,13 +1,44 @@
-import { Avatar, Box, Button, Card, Flex, Link, Text } from '@radix-ui/themes';
+import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
+
+import { fromB64 } from '@mysten/sui/utils';
+import { Avatar, Box, Card, Flex, Link, Text } from '@radix-ui/themes';
 import { useRecoilState } from 'recoil';
 
 import { STATE } from '../recoil';
 
-export const Provenance = () => {
+interface GithubAction {
+  summary: string; // build summary
+  commit: string; // source commit
+  workflow: string; // build workflow
+  ledger: string; // public ledger
+}
+
+export const Provenance = ({ BtnSign }: { BtnSign: ReactElement }) => {
   const [state] = useRecoilState(STATE);
+  const [gha, setGha] = useState<GithubAction | undefined>(undefined);
+
+  useEffect(() => {
+    if (state && !gha) {
+      const provenance = JSON.parse(
+        new TextDecoder().decode(fromB64(state.data.provenance)),
+      );
+      const payload = JSON.parse(
+        new TextDecoder().decode(fromB64(provenance.payload)),
+      );
+      setGha({
+        summary: `https://github.com/zktx-io/move_on_github_action/actions/runs/${payload.predicate.invocation.environment.github_run_id}/attempts/${payload.predicate.invocation.environment.github_run_attempt}`,
+        commit: `https://github.com/zktx-io/move_on_github_action/tree/${payload.predicate.invocation.environment.github_sha1}`,
+        workflow: `https://github.com/zktx-io/move_on_github_action/actions/runs/${payload.predicate.invocation.environment.github_run_id}/workflow`,
+        ledger: `https://search.sigstore.dev/?hash=${payload.subject[0].digest.sha256}`,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   return (
     <>
-      {state && (
+      {state && gha && (
         <Flex direction="column" gap="2">
           <Box maxWidth="240px">
             <Card>
@@ -32,7 +63,7 @@ export const Provenance = () => {
             <Card>
               <Flex gap="3" align="start" direction="column">
                 <Text as="div" size="3" weight="bold">
-                  Built and signed on Github Actions
+                  Building and Deploying with GitHub Actions
                 </Text>
                 <Flex direction="column" gap="1" maxWidth="420px">
                   <Flex direction="column">
@@ -40,10 +71,11 @@ export const Provenance = () => {
                     <Link
                       size="1"
                       color="gray"
-                      href={state.data.provenance.summary}
+                      href={gha.summary}
+                      target="_blank"
                     >
                       <Flex>
-                        <Text truncate>{state.data.provenance.summary}</Text>
+                        <Text truncate>{gha.summary}</Text>
                       </Flex>
                     </Link>
                   </Flex>
@@ -52,10 +84,11 @@ export const Provenance = () => {
                     <Link
                       size="1"
                       color="gray"
-                      href={state.data.provenance.commit}
+                      href={gha.commit}
+                      target="_blank"
                     >
                       <Flex>
-                        <Text truncate>{state.data.provenance.commit}</Text>
+                        <Text truncate>{gha.commit}</Text>
                       </Flex>
                     </Link>
                   </Flex>
@@ -64,10 +97,11 @@ export const Provenance = () => {
                     <Link
                       size="1"
                       color="gray"
-                      href={state.data.provenance.workflow}
+                      href={gha.workflow}
+                      target="_blank"
                     >
                       <Flex>
-                        <Text truncate>{state.data.provenance.workflow}</Text>
+                        <Text truncate>{gha.workflow}</Text>
                       </Flex>
                     </Link>
                   </Flex>
@@ -76,15 +110,16 @@ export const Provenance = () => {
                     <Link
                       size="1"
                       color="gray"
-                      href={state.data.provenance.ledger}
+                      href={gha.ledger}
+                      target="_blank"
                     >
                       <Flex>
-                        <Text truncate>{state.data.provenance.ledger}</Text>
+                        <Text truncate>{gha.ledger}</Text>
                       </Flex>
                     </Link>
                   </Flex>
                 </Flex>
-                <Button>Sign</Button>
+                {BtnSign}
               </Flex>
             </Card>
           </Box>

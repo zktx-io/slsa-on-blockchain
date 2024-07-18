@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Theme } from '@radix-ui/themes';
+import { SnackbarProvider } from 'notistack';
 import { createRoot } from 'react-dom/client';
 import { RecoilRoot } from 'recoil';
 
@@ -15,6 +16,9 @@ root.render(
   <React.StrictMode>
     <RecoilRoot>
       <Theme appearance="dark">
+        <SnackbarProvider
+          anchorOrigin={{ horizontal: 'left', vertical: 'top' }}
+        />
         <App />
       </Theme>
     </RecoilRoot>
