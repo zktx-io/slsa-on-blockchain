@@ -68,7 +68,7 @@ export const Sui = () => {
           body: JSON.stringify({
             uid: state.uid,
             signedData: {
-              transaction: bytes,
+              message: bytes,
               signature,
             },
           }),
