@@ -23,6 +23,7 @@ export const Sui = () => {
   const account = useCurrentAccount();
   const [state] = useRecoilState(STATE);
   const [disabled, setDisabled] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>('Sign');
 
   const handleSign = async () => {
     if (state && account) {
@@ -46,6 +47,7 @@ export const Sui = () => {
       const transaction = new Transaction();
       transaction.transferObjects(
         [
+          // TODO: transaction.upgrade
           transaction.publish({
             modules,
             dependencies: ids.map((item) => normalizeSuiObjectId(item)),
@@ -59,7 +61,6 @@ export const Sui = () => {
           transaction,
           chain: `sui:${network}`,
         });
-        console.log({ bytes, signature }); // TODO
         await fetch('https://update-jx4b2hndxq-uc.a.run.app', {
           method: 'POST',
           headers: {
@@ -77,8 +78,9 @@ export const Sui = () => {
         enqueueSnackbar(e.message, {
           variant: 'error',
         });
-      } finally {
         setDisabled(false);
+      } finally {
+        setTitle('Done');
       }
     }
   };
@@ -95,7 +97,7 @@ export const Sui = () => {
         <Provenance
           BtnSign={
             <Button mt="2" onClick={handleSign} disabled={disabled}>
-              Sign
+              {title}
             </Button>
           }
         />
