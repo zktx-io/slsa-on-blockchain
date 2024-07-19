@@ -74,13 +74,12 @@ export const Sui = () => {
             },
           }),
         });
+        setTitle('Done');
       } catch (e: any) {
         enqueueSnackbar(e.message, {
           variant: 'error',
         });
         setDisabled(false);
-      } finally {
-        setTitle('Done');
       }
     }
   };
