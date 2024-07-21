@@ -7,15 +7,12 @@ import {
   useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-import { normalizeSuiObjectId, toB64 } from '@mysten/sui/utils';
 import { Button, Flex } from '@radix-ui/themes';
 import { enqueueSnackbar } from 'notistack';
 import { useRecoilState } from 'recoil';
 
 import { STATE } from '../../recoil';
 import { Provenance } from '../Provenance';
-import { getMoveObjectId } from '../utils/getMoveObjectId';
-import { parseMoveToml } from '../utils/parseMoveToml';
 
 export const Sui = () => {
   const ctx = useSuiClientContext();
@@ -30,27 +27,19 @@ export const Sui = () => {
       setDisabled(true);
       const network = state.data.network.split('/')[1];
       ctx.selectNetwork(network);
-      const { dependencies } = parseMoveToml(state.files['./Move.toml']);
-      const ids = await getMoveObjectId({
-        MoveStdlib: {
-          git: 'https://github.com/MystenLabs/sui.git',
-          rev: 'framework/testnet',
-          subdir: 'crates/sui-framework/packages/move-stdlib',
-        },
-        ...dependencies,
-      });
-      const regex = new RegExp(
-        `^\\.\\/build\\/${state.data.name}\\/bytecode_modules\\/[^\\/]+\\.mv$`,
-      );
-      const files = Object.keys(state.files).filter((name) => regex.test(name));
-      const modules = files.map((name) => toB64(state.files[name]));
+      const { modules, dependencies } = JSON.parse(
+        new TextDecoder().decode(state.files['bytecode.dump.json']),
+      ) as {
+        modules: string[];
+        dependencies: string[];
+      };
       const transaction = new Transaction();
       transaction.transferObjects(
         [
           // TODO: transaction.upgrade
           transaction.publish({
             modules,
-            dependencies: ids.map((item) => normalizeSuiObjectId(item)),
+            dependencies,
           }),
         ],
         account.address,
