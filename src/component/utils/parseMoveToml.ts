@@ -17,6 +17,7 @@ export const parseMoveToml = (toml: string | Uint8Array) => {
         edition: string;
         name: string;
         version: string;
+        authors: string[]; // TEMP
       };
       addresses: { [key: string]: string };
       dependencies: { [key: string]: IMoveDependency };
