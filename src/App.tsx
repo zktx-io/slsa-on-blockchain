@@ -18,7 +18,6 @@ function App() {
       {!!state && state.data.network.split(':')[0] === 'sui' && (
         <QueryClientProvider client={queryClient}>
           <SuiClientProvider
-            defaultNetwork="mainnet"
             networks={{
               mainnet: { url: getFullnodeUrl('mainnet') },
               testnet: { url: getFullnodeUrl('testnet') },
