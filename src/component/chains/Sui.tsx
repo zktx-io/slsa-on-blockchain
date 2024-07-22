@@ -6,13 +6,14 @@ import {
   useSignTransaction,
   useSuiClientContext,
 } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
+import { Transaction, UpgradePolicy } from '@mysten/sui/transactions';
 import { Button, Flex } from '@radix-ui/themes';
 import { enqueueSnackbar } from 'notistack';
 import { useRecoilState } from 'recoil';
 
 import { STATE } from '../../recoil';
 import { Provenance } from '../Provenance';
+import { parseMoveToml } from '../utils/parseMoveToml';
 
 export const Sui = () => {
   const ctx = useSuiClientContext();
@@ -27,23 +28,58 @@ export const Sui = () => {
       setDisabled(true);
       const network = state.data.network.split('/')[1];
       ctx.selectNetwork(network);
-      const { modules, dependencies } = JSON.parse(
+      const { modules, dependencies, digest } = JSON.parse(
         new TextDecoder().decode(state.files['bytecode.dump.json']),
       ) as {
         modules: string[];
         dependencies: string[];
+        digest: number[];
       };
+      const {
+        package: { authors }, // TEMP
+      } = parseMoveToml(state.files['Move.toml']);
+
       const transaction = new Transaction();
-      transaction.transferObjects(
-        [
-          // TODO: transaction.upgrade
-          transaction.publish({
-            modules,
-            dependencies,
-          }),
-        ],
-        account.address,
-      );
+      transaction.setSender(account.address);
+
+      if (authors[0] && authors[1]) {
+        // TEMP: transaction.upgrade
+        const packageId = authors[0];
+        const upgradeCap = authors[0];
+        const cap = transaction.object(upgradeCap);
+        const ticket = transaction.moveCall({
+          target: '0x2::package::authorize_upgrade',
+          arguments: [
+            cap,
+            transaction.pure.u8(UpgradePolicy.COMPATIBLE),
+            transaction.pure(digest as any),
+          ],
+        });
+        const receipt = transaction.upgrade({
+          modules,
+          dependencies,
+          package: packageId,
+          ticket,
+        });
+        transaction.moveCall({
+          target: '0x2::package::commit_upgrade',
+          arguments: [cap, receipt],
+        });
+        const { input } = await ctx.client.dryRunTransactionBlock({
+          transactionBlock: await transaction.build({ client: ctx.client }),
+        });
+        transaction.setGasBudget(parseInt(input.gasData.budget));
+      } else {
+        transaction.transferObjects(
+          [
+            transaction.publish({
+              modules,
+              dependencies,
+            }),
+          ],
+          account.address,
+        );
+      }
 
       try {
         const { bytes, signature } = await signTransaction({
