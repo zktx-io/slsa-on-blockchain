@@ -16,6 +16,8 @@ import { STATE } from '../../recoil';
 import { Provenance } from '../Provenance';
 import { parseMoveToml } from '../utils/parseMoveToml';
 
+import type { ITomlUpgrade } from '../utils/parseMoveToml';
+
 export const Sui = () => {
   const { networks, selectNetwork } = useSuiClientContext();
   const { mutateAsync: signTransaction } = useSignTransaction();
@@ -36,18 +38,15 @@ export const Sui = () => {
         dependencies: string[];
         digest: number[];
       };
-      const {
-        package: { authors }, // TEMP
-      } = parseMoveToml(state.files['Move.toml']);
 
       const transaction = new Transaction();
       transaction.setSender(account.address);
 
-      if (authors && authors[0] && authors[1]) {
-        // TEMP: transaction.upgrade
-        const packageId = authors[0];
-        const upgradeCap = authors[1];
-        const cap = transaction.object(upgradeCap);
+      if (state.files['Upgrade.toml']) {
+        const {
+          upgrade: { package_id, upgrade_cap },
+        } = parseMoveToml<ITomlUpgrade>(state.files['Upgrade.toml']);  
+        const cap = transaction.object(upgrade_cap);
         const ticket = transaction.moveCall({
           target: '0x2::package::authorize_upgrade',
           arguments: [
@@ -59,7 +58,7 @@ export const Sui = () => {
         const receipt = transaction.upgrade({
           modules,
           dependencies,
-          package: packageId,
+          package: package_id,
           ticket,
         });
         transaction.moveCall({

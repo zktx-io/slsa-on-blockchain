@@ -6,22 +6,30 @@ export interface IMoveDependency {
   rev: string;
 }
 
-export const parseMoveToml = (toml: string | Uint8Array) => {
+export interface ITomlMove {
+  package: {
+    edition: string;
+    name: string;
+    version: string;
+  };
+  addresses: { [key: string]: string };
+  dependencies: { [key: string]: IMoveDependency };
+}
+
+export interface ITomlUpgrade {
+  upgrade: {
+    package_id: string;
+    upgrade_cap: string;
+  };
+}
+
+export const parseMoveToml = <T>(toml: string | Uint8Array): T => {
   try {
     return parse(
       new TextDecoder().decode(
         typeof toml === 'string' ? new TextEncoder().encode(toml) : toml,
       ),
-    ) as unknown as {
-      package: {
-        edition: string;
-        name: string;
-        version: string;
-        authors: string[]; // TEMP
-      };
-      addresses: { [key: string]: string };
-      dependencies: { [key: string]: IMoveDependency };
-    };
+    ) as T;
   } catch (error) {
     throw new Error(`${error}`);
   }
