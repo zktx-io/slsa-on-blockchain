@@ -6,6 +6,7 @@ import {
   useSignTransaction,
   useSuiClientContext,
 } from '@mysten/dapp-kit';
+import { SuiClient } from '@mysten/sui/client';
 import { Transaction, UpgradePolicy } from '@mysten/sui/transactions';
 import { Button, Flex } from '@radix-ui/themes';
 import { enqueueSnackbar } from 'notistack';
@@ -16,7 +17,7 @@ import { Provenance } from '../Provenance';
 import { parseMoveToml } from '../utils/parseMoveToml';
 
 export const Sui = () => {
-  const ctx = useSuiClientContext();
+  const { networks, selectNetwork } = useSuiClientContext();
   const { mutateAsync: signTransaction } = useSignTransaction();
   const account = useCurrentAccount();
   const [state] = useRecoilState(STATE);
@@ -27,7 +28,7 @@ export const Sui = () => {
     if (state && account) {
       setDisabled(true);
       const network = state.data.network.split('/')[1];
-      ctx.selectNetwork(network);
+      selectNetwork(network);
       const { modules, dependencies, digest } = JSON.parse(
         new TextDecoder().decode(state.files['bytecode.dump.json']),
       ) as {
@@ -42,10 +43,10 @@ export const Sui = () => {
       const transaction = new Transaction();
       transaction.setSender(account.address);
 
-      if (authors[0] && authors[1]) {
+      if (authors && authors[0] && authors[1]) {
         // TEMP: transaction.upgrade
         const packageId = authors[0];
-        const upgradeCap = authors[0];
+        const upgradeCap = authors[1];
         const cap = transaction.object(upgradeCap);
         const ticket = transaction.moveCall({
           target: '0x2::package::authorize_upgrade',
@@ -65,8 +66,9 @@ export const Sui = () => {
           target: '0x2::package::commit_upgrade',
           arguments: [cap, receipt],
         });
-        const { input } = await ctx.client.dryRunTransactionBlock({
-          transactionBlock: await transaction.build({ client: ctx.client }),
+        const client = new SuiClient(networks[network] as { url: string });
+        const { input } = await client.dryRunTransactionBlock({
+          transactionBlock: await transaction.build({ client }),
         });
         transaction.setGasBudget(parseInt(input.gasData.budget));
       } else {
