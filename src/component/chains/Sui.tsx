@@ -45,7 +45,7 @@ export const Sui = () => {
       if (state.files['Upgrade.toml']) {
         const {
           upgrade: { package_id, upgrade_cap },
-        } = parseMoveToml<ITomlUpgrade>(state.files['Upgrade.toml']);  
+        } = parseMoveToml<ITomlUpgrade>(state.files['Upgrade.toml']);
         const cap = transaction.object(upgrade_cap);
         const ticket = transaction.moveCall({
           target: '0x2::package::authorize_upgrade',
