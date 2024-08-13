@@ -27,8 +27,11 @@ jobs:
           project_id: slsa-on-blockchain
           credentials_json: ${{ secrets.FIREBASE_FUNCTIONS }}
 
-      - run: |
-          echo "${{ secrets.FIREBASE_APP_BASE64 }}" | base64 --decode > ./functions/src/serviceAccountKey.json
+      - env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_APP_BASE64 }}
+        run: |
+          echo "$FIREBASE_TOKEN" | base64 --decode > ./functions/src/serviceAccountKey.json
+  
 
       - name: Deploy upload function
         uses: google-github-actions/deploy-cloud-functions@v3
