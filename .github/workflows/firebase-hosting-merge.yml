@@ -28,9 +28,9 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_FUNCTIONS }}
 
       - env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_APP_BASE64 }}
+          FIREBASE_APP_BASE64: ${{ secrets.FIREBASE_APP_BASE64 }}
         run: |
-          echo "$FIREBASE_TOKEN" | base64 --decode > ./functions/src/serviceAccountKey.json
+          echo "$FIREBASE_APP_BASE64" | base64 --decode > ./functions/src/serviceAccountKey.json
 
       - name: Deploy upload function
         uses: google-github-actions/deploy-cloud-functions@v3
